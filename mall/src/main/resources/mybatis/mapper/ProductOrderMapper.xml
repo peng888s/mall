@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "mybatis-3-mapper.dtd">
+<mapper namespace="com.bdqn.mall.dao.ProductOrderMapper">
+    <resultMap id="productOrderMap" type="productOrder">
+        <id property="productOrderId" column="productOrderId"/>
+        <result property="productOrderCode" column="productOrderCode"/>
+        <result property="productOrderDetailAddress" column="productOrderDetailAddress"/>
+        <result property="productOrderPost" column="productOrderPost"/>
+        <result property="productOrderReceiver" column="productOrderReceiver"/>
+        <result property="productOrderMobile" column="productOrderMobile"/>
+        <result property="productOrderPayDate" column="productOrderPayDate"/>
+        <result property="productOrderDeliveryDate" column="productOrderDeliveryDate"/>
+        <result property="productOrderConfirmDate" column="productOrderConfirmDate"/>
+        <result property="productOrderStatus" column="productOrderStatus"/>
+        <association property="productOrderAddress" javaType="com.bdqn.mall.entity.Address">
+            <id property="addressAreaId" column="productOrderAddress"/>
+        </association>
+        <association property="productOrderUser" javaType="com.bdqn.mall.entity.User">
+            <id property="userId" column="productOrderUserId"/>
+        </association>
+    </resultMap>
+
+    <insert id="insertOne" parameterType="productOrder">
+        INSERT productOrder
+        (productOrderId,productOrderCode,productOrderDetailAddress,productOrderPost,productOrderReceiver,productOrderMobile,productOrderPayDate,productOrderDeliveryDate,productOrderConfirmDate,productOrderStatus,productOrderAddress,productOrderUserId)
+            VALUES (
+            null,
+            #{productOrder.productOrderCode},
+            #{productOrder.productOrderDetailAddress},
+            #{productOrder.productOrderPost},
+            #{productOrder.productOrderReceiver},
+            #{productOrder.productOrderMobile},
+            #{productOrder.productOrderPayDate},
+            #{productOrder.productOrderDeliveryDate},
+            #{productOrder.productOrderConfirmDate},
+            #{productOrder.productOrderStatus},
+        #{productOrder.productOrderAddress.addressAreaId},
+        #{productOrder.productOrderUser.userId})
+    </insert>
+    <update id="updateOne" parameterType="productOrder">
+        UPDATE productOrder
+        <set>
+            <if test="productOrder.productOrderAddress != null">
+                productOrderAddress = #{productOrder.productOrderAddress},
+            </if>
+            <if test="productOrder.productOrderDetailAddress != null">
+                productOrderDetailAddress = #{productOrder.productOrderDetailAddress},
+            </if>
+            <if test="productOrder.productOrderPost != null">
+                productOrderPost = #{productOrder.productOrderPost},
+            </if>
+            <if test="productOrder.productOrderStatus != null">
+                productOrderStatus = #{productOrder.productOrderStatus},
+            </if>
+            <if test="productOrder.productOrderPayDate != null">
+                productOrderPayDate = #{productOrder.productOrderPayDate},
+            </if>
+            <if test="productOrder.productOrderDeliveryDate != null">
+                productOrderDeliveryDate = #{productOrder.productOrderDeliveryDate},
+            </if>
+            <if test="productOrder.productOrderConfirmDate != null">
+                productOrderConfirmDate = #{productOrder.productOrderConfirmDate}
+            </if>
+        </set>
+        <where>
+            productOrderId = #{productOrder.productOrderId}
+        </where>
+    </update>
+    <delete id="deleteList" parameterType="java.util.ArrayList">
+        DELETE FROM productOrder
+        <where>
+            productOrderId IN
+            <foreach collection="productOrderIdList" index="index" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </where>
+    </delete>
+    <select id="select" resultMap="productOrderMap">
+        SELECT
+        productOrderId,productOrderCode,productOrderDetailAddress,productOrderPost,productOrderReceiver,productOrderMobile,productOrderPayDate,productOrderDeliveryDate,productOrderConfirmDate,productOrderStatus,productOrderAddress,productOrderUserId
+        FROM productOrder
+        <where>
+            <if test="productOrder != null">
+                <if test="productOrder.productOrderCode != null">productOrderCode LIKE
+                    concat('%',#{productOrder.productOrderCode},'%')
+                </if>
+                <if test="productOrder.productOrderPost != null">and productOrderPost LIKE
+                    concat('%',#{productOrder.productOrderPost},'%')
+                </if>
+                <if test="productOrder.productOrderUser != null">and productOrderUserId =
+                    #{productOrder.productOrderUser.userId}
+                </if>
+            </if>
+            <if test="productOrderStatusArray != null">
+                and productOrderStatus IN
+                <foreach collection="productOrderStatusArray" index="index" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+        <if test="orderUtil != null">
+            ORDER BY ${orderUtil.orderBy}
+            <if test="orderUtil.isDesc">desc</if>
+        </if>
+        <if test="pageUtil != null">
+            LIMIT #{pageUtil.pageStart},#{pageUtil.count}
+        </if>
+    </select>
+    <select id="selectOne" resultMap="productOrderMap" parameterType="int">
+        SELECT
+        productOrderId,productOrderCode,productOrderDetailAddress,productOrderPost,productOrderReceiver,productOrderMobile,productOrderPayDate,productOrderDeliveryDate,productOrderConfirmDate,productOrderStatus,productOrderAddress,productOrderUserId
+        FROM productOrder
+        <where>
+            productOrderId = #{productOrderId}
+        </where>
+    </select>
+    <select id="selectByCode" resultMap="productOrderMap" parameterType="string">
+        SELECT
+        productOrderId,productOrderCode,productOrderDetailAddress,productOrderPost,productOrderReceiver,productOrderMobile,productOrderPayDate,productOrderDeliveryDate,productOrderConfirmDate,productOrderStatus,productOrderAddress,productOrderUserId
+        FROM productOrder
+        <where>
+            productOrderCode = #{productOrderCode}
+        </where>
+    </select>
+    <select id="selectTotal" resultType="int">
+        SELECT COUNT(productOrderId) FROM productOrder
+        <where>
+            <if test="productOrder != null">
+                <if test="productOrder.productOrderCode">productOrderCode LIKE concat('%',#{productOrder.productOrderCode},'%')</if>
+                <if test="productOrder.productOrderPost">and productOrderPost LIKE concat('%',#{productOrder.productOrderPost},'%')</if>
+                <if test="productOrder.productOrderUser != null">and productOrderUserId =
+                    #{productOrder.productOrderUser.userId}
+                </if>
+            </if>
+            <if test="productOrderStatusArray != null">and productOrderStatus IN
+                <foreach collection="productOrderStatusArray" index="index" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <select id="getTotalByDate" resultType="orderGroup">
+        SELECT
+        productOrderPayDate,count(productOrderId) as productOrderCount ,productOrderStatus from productOrder
+        <where>
+            productOrderPayDate BETWEEN #{beginDate} AND #{endDate}
+        </where>
+        GROUP BY DATE_FORMAT(productOrderPayDate,'%Y-%m-%d'),productOrderStatus
+    </select>
+</mapper>

@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "mybatis-3-mapper.dtd">
+<mapper namespace="com.bdqn.mall.dao.ProductMapper">
+    <resultMap id="productMap" type="product">
+        <id property="productId" column="productId"/>
+        <result property="productName" column="productName"/>
+        <result property="productTitle" column="productTitle"/>
+        <result property="productPrice" column="productPrice"/>
+        <result property="productSalePrice" column="productSalePrice"/>
+        <result property="productCreateDate" column="productCreateDate"/>
+        <result property="productIsEnabled" column="productIsEnabled"/>
+        <association property="productCategory" javaType="com.bdqn.mall.entity.Category">
+            <id property="categoryId" column="productCategoryId"/>
+        </association>
+    </resultMap>
+
+    <insert id="insertOne" parameterType="product">
+        INSERT product (productId,productName,productTitle,productPrice,productSalePrice,productCreateDate,productIsEnabled,productCategoryId)
+            VALUES(
+            null,
+            #{product.productName},
+            #{product.productTitle},
+            #{product.productPrice},
+            #{product.productSalePrice},
+            #{product.productCreateDate},
+            #{product.productIsEnabled},
+            #{product.productCategory.categoryId})
+    </insert>
+    <update id="updateOne" parameterType="product">
+        UPDATE product
+        <set>
+            <if test="product.productName != null">productName = #{product.productName},</if>
+            <if test="product.productTitle != null">productTitle = #{product.productTitle},</if>
+            <if test="product.productPrice != null">productPrice = #{product.productPrice},</if>
+            <if test="product.productSalePrice != null">productSalePrice = #{product.productSalePrice},</if>
+            <if test="product.productIsEnabled != null">productIsEnabled = #{product.productIsEnabled},</if>
+            <if test="product.productCategory != null">
+                productCategoryId = #{product.productCategory.categoryId}
+            </if>
+        </set>
+        <where>
+            productId = #{product.productId}
+        </where>
+    </update>
+    <select id="select" resultMap="productMap">
+        SELECT productId,productName,productTitle,productPrice,productSalePrice,productCreateDate,productIsEnabled,productCategoryId
+        <if test="orderUtil != null">
+            <if test='orderUtil.orderBy == "productSaleCount"'>
+            ,(SELECT SUM(productOrderItemNumber) FROM productOrderItem WHERE productOrderItemProductId = productId) AS #{orderUtil.orderBy}
+            </if>
+        </if>
+        FROM product
+        <where>
+            <if test="product != null">
+                <if test="product.productName != null">productName LIKE concat('%',#{product.productName},'%')</if>
+                <if test="product.productPrice != null">and productSalePrice &lt;= #{product.productPrice}</if>
+                <if test="product.productSalePrice != null">and productSalePrice &gt;= #{product.productSalePrice}</if>
+                <if test="product.productCategory != null">
+                    <if test="product.productCategory.categoryId != null">and productCategoryId =
+                        #{product.productCategory.categoryId}
+                    </if>
+                </if>
+            </if>
+            <if test="productIsEnabledArray != null">
+                and productIsEnabled IN
+                <foreach collection="productIsEnabledArray" index="index" item="item" open="(" separator=","
+                         close=")">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+        <if test="orderUtil != null">
+            ORDER BY ${orderUtil.orderBy}
+            <if test="orderUtil.isDesc">desc</if>
+        </if>
+        <if test="pageUtil != null">
+            LIMIT #{pageUtil.pageStart},#{pageUtil.count}
+        </if>
+    </select>
+    <select id="selectMoreList" resultMap="productMap">
+        SELECT
+        productId,productName,productTitle,productPrice,productSalePrice,productCreateDate,productIsEnabled,productCategoryId
+        <if test="orderUtil != null">
+            <if test='orderUtil.orderBy == "productSaleCount"'>
+                ,(SELECT SUM(productOrderItemNumber) FROM productOrderItem WHERE productOrderItemProductId =
+                productId) AS #{orderUtil.orderBy}
+            </if>
+        </if>
+        FROM product
+        <where>
+            <if test="product != null">
+                <if test="product.productPrice != null">and productSalePrice &lt;= #{product.productPrice}</if>
+                <if test="product.productSalePrice != null">and productSalePrice &gt;=
+                    #{product.productSalePrice}
+                </if>
+                <if test="product.productCategory != null">
+                    <if test="product.productCategory.categoryId != null">and productCategoryId =
+                        #{product.productCategory.categoryId}
+                    </if>
+                </if>
+            </if>
+            <if test="product_name_split != null">
+                and
+                <foreach collection="product_name_split" index="index" item="item" open="(" separator="and" close=")">
+                    productName LIKE concat('%',#{item},'%')
+                </foreach>
+            </if>
+            <if test="productIsEnabledArray != null">
+                and productIsEnabled IN
+                <foreach collection="productIsEnabledArray" index="index" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+        <if test="orderUtil != null">
+            ORDER BY ${orderUtil.orderBy}<if test="orderUtil.isDesc">desc </if>
+        </if>
+        <if test="pageUtil != null">
+            LIMIT #{pageUtil.pageStart},#{pageUtil.count}
+        </if>
+    </select>
+    <select id="selectOne" resultMap="productMap" parameterType="int">
+        SELECT productId,productName,productTitle,productPrice,productSalePrice,productCreateDate,productIsEnabled,productCategoryId FROM product
+        <where>
+            productId = #{productId}
+        </where>
+    </select>
+    <select id="selectTitle" resultType="product">
+        SELECT productId,productTitle FROM product
+        <where>
+            <if test="product != null">
+                <if test="product.productName != null">productName LIKE concat('%',#{product.productName},'%')</if>
+                <if test="product.productPrice != null">and productSalePrice &lt;= #{product.productPrice}</if>
+                <if test="product.productSalePrice != null">and productSalePrice &gt;=
+                    #{product.productSalePrice}
+                </if>
+                <if test="product.productCategory != null">
+                    <if test="product.productCategory.categoryId != null">and productCategoryId =
+                        #{product.productCategory.categoryId}
+                    </if>
+                </if>
+            </if>
+            and productIsEnabled != 1
+        </where>
+        ORDER BY productId desc
+        <if test="pageUtil != null">
+            LIMIT #{pageUtil.pageStart},#{pageUtil.count}
+        </if>
+    </select>
+    <select id="selectTotal" resultType="int">
+        SELECT COUNT(productId) FROM product
+        <where>
+            <if test="product != null">
+                <if test="product.productName != null">productName LIKE concat('%',#{product.productName},'%')</if>
+                <if test="product.productPrice != null">and productSalePrice &lt;= #{product.productPrice}</if>
+                <if test="product.productSalePrice != null">and productSalePrice &gt;= #{product.productSalePrice}</if>
+                <if test="product.productCategory != null">
+                    <if test="product.productCategory.categoryId != null">and productCategoryId =
+                        #{product.productCategory.categoryId}
+                    </if>
+                </if>
+            </if>
+            <if test="productIsEnabledArray != null">and productIsEnabled IN
+                <foreach collection="productIsEnabledArray" index="index" item="item" open="(" separator=","
+                         close=")">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </select>
+    <select id="selectMoreListTotal" resultType="int">
+        SELECT COUNT(productId) FROM product
+        <where>
+            <if test="product != null">
+                <if test="product.productPrice != null">and productSalePrice &lt;= #{product.productPrice}</if>
+                <if test="product.productSalePrice != null">and productSalePrice &gt;=
+                    #{product.productSalePrice}
+                </if>
+                <if test="product.productCategory != null">
+                    <if test="product.productCategory.categoryId != null">and productCategoryId =
+                        #{product.productCategory.categoryId}
+                    </if>
+                </if>
+            </if>
+            <if test="product_name_split != null">
+                and
+                <foreach collection="product_name_split" index="index" item="item" open="(" separator="and" close=")">
+                    productName LIKE concat('%',#{item},'%')
+                </foreach>
+            </if>
+            <if test="productIsEnabledArray != null">and productIsEnabled IN
+                <foreach collection="productIsEnabledArray" index="index" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </select>
+</mapper>

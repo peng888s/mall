@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "mybatis-3-mapper.dtd">
+<mapper namespace="com.bdqn.mall.dao.AddressMapper">
+    <resultMap id="address" type="com.bdqn.mall.entity.Address">
+        <id property="addressAreaId" column="addressAreaId"/>
+        <result property="addressName" column="addressName"/>
+        <association property="addressRegionId" javaType="com.bdqn.mall.entity.Address">
+            <id property="addressAreaId" column="addressRegionId"/>
+        </association>
+    </resultMap>
+    <insert id="insertOne" parameterType="address">
+        INSERT address(addressAreaId,addressName,addressRegionId)
+            VALUES (
+            #{address.addressAreaId},
+            #{address.addressName},
+            #{address.addressRegionId})
+    </insert>
+    <update id="updateOne" parameterType="address">
+        UPDATE address
+        <set>
+            <if test="address.addressName != null">addressName = #{address.addressName}</if>
+        </set>
+        <where>
+            addressAreaId = #{address.addressAreaId}
+        </where>
+    </update>
+
+    <select id="select" resultMap="address">
+        SELECT addressAreaId,addressName,addressRegionId FROM address
+        <where>
+            <if test="addressName != null">
+                addressName LIKE concat('%',#{addressName},'%')
+            </if>
+            <if test="addressRegionId != null">
+                and addressRegionId = #{addressRegionId} and addressAreaId != addressRegionId
+            </if>
+        </where>
+    </select>
+    <select id="selectOne" resultMap="address" parameterType="string">
+        SELECT addressAreaId,addressName,addressRegionId FROM address
+        <where>
+            addressAreaId = #{addressAreaId}
+        </where>
+    </select>
+    <select id="selectRoot" resultMap="address">
+        SELECT addressAreaId,addressName,addressRegionId FROM address
+        <where>
+            addressAreaId = addressRegionId
+        </where>
+    </select>
+</mapper>

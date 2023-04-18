@@ -1,0 +1,32 @@
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/mall?serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=utf-8
+    username: root
+    password: 123456
+    tomcat:
+      initial-size: 5
+      max-active: 100
+      max-idle: 50
+      min-idle: 45
+      max-wait: 100
+      remove-abandoned: true
+      remove-abandoned-timeout: 180
+      test-while-idle: true
+      time-between-eviction-runs-millis: 60000
+      test-on-borrow: false
+      test-on-return: false
+      validation-query: select 1
+      num-tests-per-eviction-run: 100
+  mvc:
+    view:
+      prefix: /WEB-INF/page/
+      suffix: .jsp
+mybatis:
+  mapper-locations: classpath:mybatis/mapper/*.xml
+  type-aliases-package: com.bdqn.mall.entity
+server:
+  servlet:
+    context-path: /mall
+  port: 8088

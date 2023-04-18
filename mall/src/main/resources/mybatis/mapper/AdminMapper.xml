@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "mybatis-3-mapper.dtd">
+<mapper namespace="com.bdqn.mall.dao.AdminMapper">
+    <insert id="insertOne" parameterType="admin">
+        INSERT admin(adminId,adminName,adminNickName,adminPassword,adminProfilePictureSrc)
+            VALUES (
+            null,
+            #{admin.adminId},
+            #{admin.adminName},
+            #{admin.adminNickName},
+            #{admin.adminPassword},
+            #{admin.adminProfilePictureSrc})
+    </insert>
+    <update id="updateOne" parameterType="admin">
+        UPDATE admin
+        <set>
+            <if test="admin.adminProfilePictureSrc != null">adminProfilePictureSrc = #{admin.adminProfilePictureSrc},</if>
+            <if test="admin.adminNickName != null">adminNickName = #{admin.adminNickName},</if>
+            <if test="admin.adminPassword != null">adminPassword = #{admin.adminPassword}</if>
+        </set>
+        <where>
+            adminId = #{admin.adminId}
+        </where>
+    </update>
+    <select id="select" resultType="admin">
+        SELECT adminId,adminName,adminNickName,adminProfilePictureSrc FROM admin
+        <if test="pageUtil != null">
+            LIMIT #{pageUtil.index},#{pageUtil.count}
+        </if>
+        <where>
+            <if test="adminName != null">
+                adminName LIKE concat('%',#{adminName},'%')
+            </if>
+        </where>
+    </select>
+    <select id="selectOne" resultType="admin" parameterType="int">
+        SELECT adminId,adminName,adminNickName,adminProfilePictureSrc FROM admin
+        <where>
+            <if test="adminId != null">
+                adminId = #{adminId}
+            </if>
+            <if test="adminName != null">
+                adminName = #{adminName}
+            </if>
+        </where>
+    </select>
+    <select id="selectByLogin" resultType="admin">
+        SELECT adminId FROM admin
+        <where>
+            adminName = #{adminName} and adminPassword = #{adminPassword}
+        </where>
+    </select>
+    <select id="selectTotal" resultType="int">
+        SELECT COUNT(adminId) FROM admin
+        <where>
+            <if test="adminName != null">adminName LIKE concat('%',#{adminName},'%')</if>
+        </where>
+    </select>
+</mapper>

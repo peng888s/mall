@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "mybatis-3-mapper.dtd">
+<mapper namespace="com.bdqn.mall.dao.CategoryMapper">
+    <insert id="insertOne" parameterType="category">
+        INSERT category (categoryId,categoryName,categoryImageSrc)
+            VALUES (
+            null,
+            #{category.categoryName},
+            #{category.categoryImageSrc})
+    </insert>
+    <update id="updateOne" parameterType="category">
+        UPDATE category
+        <set>
+            <if test="category.categoryName != null">categoryName = #{category.categoryName},</if>
+            <if test="category.categoryImageSrc != null">categoryImageSrc = #{category.categoryImageSrc}</if>
+        </set>
+        <where>
+            categoryId = #{category.categoryId}
+        </where>
+    </update>
+    <select id="select" resultType="category">
+        SELECT categoryId,categoryName,categoryImageSrc FROM category
+        <where>
+            <if test="categoryName != null">categoryName LIKE concat('%',#{categoryName},'%')</if>
+        </where>
+        <if test="pageUtil != null">
+            LIMIT #{pageUtil.pageStart},#{pageUtil.count}
+        </if>
+    </select>
+    <select id="selectOne" parameterType="int" resultType="category">
+        SELECT categoryId,categoryName,categoryImageSrc FROM category
+        <where>
+            categoryId = #{categoryId}
+        </where>
+    </select>
+    <select id="selectTotal" resultType="int">
+        SELECT COUNT(categoryId) FROM category
+        <where>
+            <if test="categoryName != null">categoryName LIKE concat('%',#{categoryName},'%')</if>
+        </where>
+    </select>
+</mapper>
